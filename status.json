@@ -1,0 +1,20 @@
+{
+  "scout": {
+    "status": "idle",
+    "lastRun": null,
+    "leadsThisRun": 0,
+    "leadsTotal": 0
+  },
+  "sdr": {
+    "status": "idle",
+    "lastRun": null,
+    "emailsThisRun": 0,
+    "emailsTotal": 0
+  },
+  "replyHandler": {
+    "status": "idle",
+    "lastRun": null,
+    "repliesThisRun": 0,
+    "repliesTotal": 0
+  }
+}
