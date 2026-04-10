@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigiLab Command Center</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f0f; color: #f0f0f0; padding: 2rem; }
+  h1 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: #888; margin-bottom: 2rem; }
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+  .metric { background: #1a1a1a; border-radius: 10px; padding: 1rem; }
+  .metric-label { font-size: 12px; color: #666; margin-bottom: 6px; }
+  .metric-value { font-size: 24px; font-weight: 500; }
+  .agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 2rem; }
+  .agent { background: #1a1a1a; border-radius: 10px; padding: 1.25rem; border: 1px solid #2a2a2a; }
+  .agent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+  .agent-name { font-size: 14px; font-weight: 500; }
+  .agent-role { font-size: 11px; color: #666; margin-top: 2px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; }
+  .dot-active { background: #22c55e; }
+  .dot-idle { background: #f59e0b; }
+  .dot-error { background: #ef4444; }
+  .agent-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+  .stat { background: #111; border-radius: 8px; padding: 10px; }
+  .stat-val { font-size: 20px; font-weight: 500; }
+  .stat-lbl { font-size: 10px; color: #666; margin-top: 2px; }
+  .last-run { font-size: 11px; color: #555; border-top: 1px solid #2a2a2a; padding-top: 10px; }
+  .funnel-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .funnel-label { font-size: 12px; color: #888; width: 120px; flex-shrink: 0; }
+  .funnel-bg { flex: 1; height: 8px; background: #1a1a1a; border-radius: 4px; overflow: hidden; }
+  .funnel-fill { height: 100%; border-radius: 4px; }
+  .funnel-count { font-size: 12px; font-weight: 500; width: 50px; text-align: right; }
+  .section-title { font-size: 12px; color: #555; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 12px; }
+  .log { background: #1a1a1a; border-radius: 10px; padding: 1rem; }
+  .log-entry { display: flex; gap: 12px; font-size: 12px; padding: 6px 0; border-bottom: 1px solid #222; }
+  .log-time { color: #555; font-family: monospace; flex-shrink: 0; }
+  .badge { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 6px; background: #1a3a1a; color: #22c55e; }
+  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+  .refresh { font-size: 12px; background: #1a1a1a; border: 1px solid #333; color: #888; padding: 6px 14px; border-radius: 6px; cursor: pointer; }
+  .refresh:hover { color: #fff; border-color: #555; }
+  .last-updated { font-size: 11px; color: #444; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header-row">
+  <div>
+    <h1>DigiLab — Command Center</h1>
+    <div class="sub">Home Services · Lead Gen System</div>
+  </div>
+  <div style="text-align:right">
+    <span class="badge">3 agents live</span>
+    <div class="last-updated" id="last-updated">—</div>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric"><div class="metric-label">Leads scraped</div><div class="metric-value" id="m-leads">—</div></div>
+  <div class="metric"><div class="metric-label">Emails sent</div><div class="metric-value" id="m-emails">—</div></div>
+  <div class="metric"><div class="metric-label">Replies handled</div><div class="metric-value" id="m-replies">—</div></div>
+  <div class="metric"><div class="metric-label">Last updated</div><div class="metric-value" id="m-time" style="font-size:16px">—</div></div>
+</div>
+
+<div class="section-title" style="margin-bottom:12px">Deployed agents</div>
+<div class="agents" id="agents"></div>
+
+<div class="section-title">Pipeline funnel</div>
+<div style="margin-bottom:2rem" id="funnel"></div>
+
+<div class="section-title">Activity feed</div>
+<div class="log" id="log"></div>
+
+<script>
+const STATUS_URL = 'https://goodlifetrav.github.io/digilab-dashboard/status.json';
+
+const agentConfig = [
+  { key: 'scout', name: 'Agent 1 — The Scout', role: 'Lead scraper', statKeys: [['leadsThisRun','This run'],['leadsTotal','All time']] },
+  { key: 'sdr', name: 'Agent 2 — The SDR', role: 'Outreach sender', statKeys: [['emailsThisRun','This run'],['emailsTotal','All time']] },
+  { key: 'replyHandler', name: 'Agent 3 — Reply Handler', role: 'Reply processor', statKeys: [['repliesThisRun','This run'],['repliesTotal','All time']] }
+];
+
+function dotClass(s) {
+  return s === 'active' ? 'dot-active' : s === 'error' ? 'dot-error' : 'dot-idle';
+}
+
+function timeAgo(iso) {
+  if (!iso) return 'Never run';
+  const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (diff < 60) return diff + 's ago';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+
+function render(data) {
+  const totalLeads = data.scout.leadsTotal || 0;
+  const totalEmails = data.sdr.emailsTotal || 0;
+  const totalReplies = data.replyHandler.repliesTotal || 0;
+
+  document.getElementById('m-leads').textContent = totalLeads.toLocaleString();
+  document.getElementById('m-emails').textContent = totalEmails.toLocaleString();
+  document.getElementById('m-replies').textContent = totalReplies.toLocaleString();
+  document.getElementById('m-time').textContent = new Date().toLocaleTimeString();
+  document.getElementById('last-updated').textContent = 'Refreshed at ' + new Date().toLocaleTimeString();
+
+  document.getElementById('agents').innerHTML = agentConfig.map(a => {
+    const d = data[a.key];
+    return `
+      <div class="agent">
+        <div class="agent-header">
+          <div><div class="agent-name">${a.name}</div><div class="agent-role">${a.role}</div></div>
+          <div class="dot ${dotClass(d.status)}"></div>
+        </div>
+        <div class="agent-stats">
+          ${a.statKeys.map(([k,l]) => `<div class="stat"><div class="stat-val">${(d[k]||0).toLocaleString()}</div><div class="stat-lbl">${l}</div></div>`).join('')}
+        </div>
+        <div class="last-run">Last run: ${timeAgo(d.lastRun)}</div>
+      </div>`;
+  }).join('');
+
+  const funnelData = [
+    { label: 'Leads scraped', count: totalLeads, color: '#378ADD' },
+    { label: 'Emails sent', count: totalEmails, color: '#22c55e' },
+    { label: 'Replies handled', count: totalReplies, color: '#f59e0b' }
+  ];
+  const max = Math.max(...funnelData.map(f => f.count), 1);
+  document.getElementById('funnel').innerHTML = funnelData.map(f => `
+    <div class="funnel-row">
+      <span class="funnel-label">${f.label}</span>
+      <div class="funnel-bg"><div class="funnel-fill" style="width:${Math.round(f.count/max*100)}%;background:${f.color}"></div></div>
+      <span class="funnel-count">${f.count.toLocaleString()}</span>
+    </div>`).join('');
+
+  const logs = [];
+  ['scout','sdr','replyHandler'].forEach(k => {
+    if (data[k].lastRun) {
+      const labels = { scout: 'Scout scraped leads', sdr: 'SDR sent emails', replyHandler: 'Reply Handler ran' };
+      logs.push({ time: new Date(data[k].lastRun).toLocaleTimeString(), msg: labels[k] });
+    }
+  });
+  logs.sort((a,b) => b.time.localeCompare(a.time));
+  document.getElementById('log').innerHTML = logs.length
+    ? logs.map(l => `<div class="log-entry"><span class="log-time">${l.time}</span><span>${l.msg}</span></div>`).join('')
+    : '<div class="log-entry"><span style="color:#555">No activity yet — agents have not run</span></div>';
+}
+
+async function load() {
+  try {
+    const res = await fetch(STATUS_URL + '?t=' + Date.now());
+    const data = await res.json();
+    render(data);
+  } catch(e) {
+    document.getElementById('log').innerHTML = '<div class="log-entry"><span style="color:#ef4444">Could not load status.json</span></div>';
+  }
+}
+
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>
