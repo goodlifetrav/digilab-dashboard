@@ -13,8 +13,8 @@
   },
   "replyHandler": {
     "status": "idle",
-    "lastRun": null,
-    "repliesThisRun": 0,
-    "repliesTotal": 0
+    "lastRun": "2026-04-10T20:12:38.841Z",
+    "repliesThisRun": 1,
+    "repliesTotal": 1
   }
 }
