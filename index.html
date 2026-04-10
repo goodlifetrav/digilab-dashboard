@@ -58,7 +58,7 @@
 
 <div class="metrics">
   <div class="metric"><div class="metric-label">Leads scraped</div><div class="metric-value" id="m-leads">—</div></div>
-  <div class="metric"><div class="metric-label">Emails sent</div><div class="metric-value" id="m-emails">—</div></div>
+  <div class="metric"><div class="metric-label">SMS sent</div><div class="metric-value" id="m-sms">—</div></div>
   <div class="metric"><div class="metric-label">Replies handled</div><div class="metric-value" id="m-replies">—</div></div>
   <div class="metric"><div class="metric-label">Last updated</div><div class="metric-value" id="m-time" style="font-size:16px">—</div></div>
 </div>
@@ -77,7 +77,7 @@ const STATUS_URL = 'https://goodlifetrav.github.io/digilab-dashboard/status.json
 
 const agentConfig = [
   { key: 'scout', name: 'Agent 1 — The Scout', role: 'Lead scraper', statKeys: [['leadsThisRun','This run'],['leadsTotal','All time']] },
-  { key: 'sdr', name: 'Agent 2 — The SDR', role: 'Outreach sender', statKeys: [['emailsThisRun','This run'],['emailsTotal','All time']] },
+  { key: 'sdr', name: 'Agent 2 — The SDR', role: 'Outreach sender', statKeys: [['smsThisRun','This run'],['smsTotal','All time']] },
   { key: 'replyHandler', name: 'Agent 3 — Reply Handler', role: 'Reply processor', statKeys: [['repliesThisRun','This run'],['repliesTotal','All time']] }
 ];
 
@@ -96,11 +96,11 @@ function timeAgo(iso) {
 
 function render(data) {
   const totalLeads = data.scout.leadsTotal || 0;
-  const totalEmails = data.sdr.emailsTotal || 0;
+  const totalSms = data.sdr.smsTotal || 0;
   const totalReplies = data.replyHandler.repliesTotal || 0;
 
   document.getElementById('m-leads').textContent = totalLeads.toLocaleString();
-  document.getElementById('m-emails').textContent = totalEmails.toLocaleString();
+  document.getElementById('m-sms').textContent = totalSms.toLocaleString();
   document.getElementById('m-replies').textContent = totalReplies.toLocaleString();
   document.getElementById('m-time').textContent = new Date().toLocaleTimeString();
   document.getElementById('last-updated').textContent = 'Refreshed at ' + new Date().toLocaleTimeString();
@@ -122,7 +122,7 @@ function render(data) {
 
   const funnelData = [
     { label: 'Leads scraped', count: totalLeads, color: '#378ADD' },
-    { label: 'Emails sent', count: totalEmails, color: '#22c55e' },
+    { label: 'SMS sent', count: totalSms, color: '#22c55e' },
     { label: 'Replies handled', count: totalReplies, color: '#f59e0b' }
   ];
   const max = Math.max(...funnelData.map(f => f.count), 1);
@@ -136,7 +136,7 @@ function render(data) {
   const logs = [];
   ['scout','sdr','replyHandler'].forEach(k => {
     if (data[k].lastRun) {
-      const labels = { scout: 'Scout scraped leads', sdr: 'SDR sent emails', replyHandler: 'Reply Handler ran' };
+      const labels = { scout: 'Scout scraped leads', sdr: 'SDR sent SMS', replyHandler: 'Reply Handler ran' };
       logs.push({ time: new Date(data[k].lastRun).toLocaleTimeString(), msg: labels[k] });
     }
   });
