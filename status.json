@@ -1,9 +1,9 @@
 {
   "scout": {
     "status": "idle",
-    "lastRun": null,
-    "leadsThisRun": 0,
-    "leadsTotal": 0
+    "lastRun": "2026-04-10T15:59:15.487Z",
+    "leadsThisRun": 227,
+    "leadsTotal": 227
   },
   "sdr": {
     "status": "idle",
