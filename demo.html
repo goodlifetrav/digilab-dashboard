@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigiLab — AI Command Center</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #0f0f0f!important; color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.dash { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+.header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+.client-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px; background: #1a3a1a; color: #22c55e; margin-bottom: 6px; }
+.dash-title { font-size: 20px; font-weight: 500; color: #fff; }
+.dash-sub { font-size: 13px; color: #666; margin-top: 2px; }
+.live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; margin-right: 5px; }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+.metric { background: #1a1a1a; border-radius: 10px; padding: 1rem; }
+.metric-label { font-size: 12px; color: #666; margin-bottom: 6px; }
+.metric-value { font-size: 26px; font-weight: 500; color: #fff; }
+.metric-delta { font-size: 11px; color: #22c55e; margin-top: 3px; }
+.agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 2rem; }
+.agent { background: #1a1a1a; border-radius: 12px; padding: 1.25rem; border: 1px solid #2a2a2a; }
+.agent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+.agent-name { font-size: 14px; font-weight: 500; color: #fff; }
+.agent-role { font-size: 11px; color: #555; margin-top: 2px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; }
+.dot-active { background: #22c55e; }
+.dot-idle { background: #f59e0b; }
+.agent-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+.stat { background: #111; border-radius: 8px; padding: 10px; }
+.stat-val { font-size: 20px; font-weight: 500; color: #fff; }
+.stat-lbl { font-size: 10px; color: #555; margin-top: 2px; }
+.last-run { font-size: 11px; color: #444; border-top: 1px solid #222; padding-top: 10px; }
+.funnel-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.funnel-label { font-size: 12px; color: #777; width: 140px; flex-shrink: 0; }
+.funnel-bg { flex: 1; height: 8px; background: #111; border-radius: 4px; overflow: hidden; }
+.funnel-fill { height: 100%; border-radius: 4px; }
+.funnel-count { font-size: 12px; font-weight: 500; color: #fff; width: 50px; text-align: right; }
+.funnel-pct { font-size: 11px; color: #555; width: 36px; text-align: right; }
+.section-title { font-size: 11px; color: #444; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 14px; font-weight: 600; }
+.log { background: #1a1a1a; border-radius: 12px; padding: 1rem 1.25rem; }
+.log-entry { display: flex; gap: 12px; font-size: 12px; padding: 8px 0; border-bottom: 1px solid #1f1f1f; align-items: flex-start; }
+.log-time { color: #444; font-family: monospace; flex-shrink: 0; width: 52px; }
+.log-agent { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; }
+.log-msg { color: #888; flex: 1; }
+.tag-responder { background: #0c2a4a; color: #378ADD; }
+.tag-estimator { background: #1a2a0a; color: #7ab32e; }
+.tag-closer { background: #2a1a0a; color: #d4841a; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 2rem; }
+.panel { background: #1a1a1a; border-radius: 12px; padding: 1.25rem; }
+.footer { text-align: center; font-size: 11px; color: #333; padding: 2rem 0 1rem; }
+</style>
+</head>
+<body style="background:#0f0f0f!important">
+<div class="dash">
+
+  <div class="header-row">
+    <div>
+      <div class="client-badge">Peak Roofing — Dallas, TX</div>
+      <div class="dash-title"><span class="live-dot"></span>AI Command Center</div>
+      <div class="dash-sub">3 agents active · Auto-refreshes every 60s</div>
+    </div>
+    <div style="text-align:right;font-size:11px;color:#444" id="last-updated">Last updated: just now</div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Leads contacted</div>
+      <div class="metric-value">347</div>
+      <div class="metric-delta">+24 today</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Estimates sent</div>
+      <div class="metric-value">89</div>
+      <div class="metric-delta">+6 today</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Jobs closed</div>
+      <div class="metric-value">14</div>
+      <div class="metric-delta">+1 today</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Est. pipeline value</div>
+      <div class="metric-value">$112K</div>
+      <div class="metric-delta">+$8K today</div>
+    </div>
+  </div>
+
+  <div class="section-title">Deployed agents</div>
+  <div class="agents">
+    <div class="agent">
+      <div class="agent-header">
+        <div><div class="agent-name">Agent 1 — The Responder</div><div class="agent-role">Inbound lead handler</div></div>
+        <div class="dot dot-active"></div>
+      </div>
+      <div class="agent-stats">
+        <div class="stat"><div class="stat-val">24</div><div class="stat-lbl">Leads today</div></div>
+        <div class="stat"><div class="stat-val">347</div><div class="stat-lbl">All time</div></div>
+      </div>
+      <div class="last-run">Last run: 4 min ago · responds within 3 min</div>
+    </div>
+    <div class="agent">
+      <div class="agent-header">
+        <div><div class="agent-name">Agent 2 — The Estimator</div><div class="agent-role">Estimate sender</div></div>
+        <div class="dot dot-active"></div>
+      </div>
+      <div class="agent-stats">
+        <div class="stat"><div class="stat-val">6</div><div class="stat-lbl">Sent today</div></div>
+        <div class="stat"><div class="stat-val">89</div><div class="stat-lbl">All time</div></div>
+      </div>
+      <div class="last-run">Last run: 11 min ago · triggered on interest</div>
+    </div>
+    <div class="agent">
+      <div class="agent-header">
+        <div><div class="agent-name">Agent 3 — The Closer</div><div class="agent-role">Deal closer</div></div>
+        <div class="dot dot-idle"></div>
+      </div>
+      <div class="agent-stats">
+        <div class="stat"><div class="stat-val">1</div><div class="stat-lbl">Closed today</div></div>
+        <div class="stat"><div class="stat-val">14</div><div class="stat-lbl">All time</div></div>
+      </div>
+      <div class="last-run">Last run: 38 min ago · waiting for replies</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="section-title">Pipeline funnel</div>
+      <div class="funnel-row">
+        <span class="funnel-label">Leads contacted</span>
+        <div class="funnel-bg"><div class="funnel-fill" style="width:100%;background:#378ADD"></div></div>
+        <span class="funnel-count">347</span>
+        <span class="funnel-pct">100%</span>
+      </div>
+      <div class="funnel-row">
+        <span class="funnel-label">Replied</span>
+        <div class="funnel-bg"><div class="funnel-fill" style="width:26%;background:#7ab32e"></div></div>
+        <span class="funnel-count">89</span>
+        <span class="funnel-pct">26%</span>
+      </div>
+      <div class="funnel-row">
+        <span class="funnel-label">Estimate sent</span>
+        <div class="funnel-bg"><div class="funnel-fill" style="width:16%;background:#d4841a"></div></div>
+        <span class="funnel-count">54</span>
+        <span class="funnel-pct">16%</span>
+      </div>
+      <div class="funnel-row">
+        <span class="funnel-label">Job closed</span>
+        <div class="funnel-bg"><div class="funnel-fill" style="width:4%;background:#22c55e"></div></div>
+        <span class="funnel-count">14</span>
+        <span class="funnel-pct">4%</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title">This week at a glance</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#666">Mon</span><div style="display:flex;gap:8px"><span style="color:#378ADD">52 leads</span><span style="color:#7ab32e">13 replies</span><span style="color:#22c55e">2 closed</span></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#666">Tue</span><div style="display:flex;gap:8px"><span style="color:#378ADD">61 leads</span><span style="color:#7ab32e">18 replies</span><span style="color:#22c55e">3 closed</span></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#666">Wed</span><div style="display:flex;gap:8px"><span style="color:#378ADD">48 leads</span><span style="color:#7ab32e">11 replies</span><span style="color:#22c55e">4 closed</span></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#666">Thu</span><div style="display:flex;gap:8px"><span style="color:#378ADD">58 leads</span><span style="color:#7ab32e">14 replies</span><span style="color:#22c55e">3 closed</span></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#666">Fri</span><div style="display:flex;gap:8px"><span style="color:#378ADD">64 leads</span><span style="color:#7ab32e">17 replies</span><span style="color:#22c55e">1 closed</span></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;border-top:1px solid #222;padding-top:10px"><span style="color:#fff;font-weight:500">Today</span><div style="display:flex;gap:8px"><span style="color:#378ADD">24 leads</span><span style="color:#7ab32e">6 replies</span><span style="color:#22c55e">1 closed</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Live activity feed</div>
+  <div class="log">
+    <div class="log-entry"><span class="log-time">2:41 PM</span><span class="log-agent tag-closer">Closer</span><span class="log-msg">Booked estimate — Marcus T., Plano TX — roof replacement inquiry — $8,400 job</span></div>
+    <div class="log-entry"><span class="log-time">2:29 PM</span><span class="log-agent tag-estimator">Estimator</span><span class="log-msg">Sent estimate to Jennifer W., Frisco TX — storm damage repair</span></div>
+    <div class="log-entry"><span class="log-time">2:17 PM</span><span class="log-agent tag-responder">Responder</span><span class="log-msg">Replied to David K., Arlington TX — "interested in a quote for full replacement"</span></div>
+    <div class="log-entry"><span class="log-time">2:04 PM</span><span class="log-agent tag-responder">Responder</span><span class="log-msg">New lead contacted — Robert M., Irving TX — hail damage claim</span></div>
+    <div class="log-entry"><span class="log-time">1:51 PM</span><span class="log-agent tag-estimator">Estimator</span><span class="log-msg">Follow-up sent to Carlos R., Garland TX — no response in 48hrs</span></div>
+    <div class="log-entry"><span class="log-time">1:38 PM</span><span class="log-agent tag-closer">Closer</span><span class="log-msg">Qualified Sarah B., McKinney TX — ready to book, sent calendar link</span></div>
+    <div class="log-entry"><span class="log-time">1:22 PM</span><span class="log-agent tag-responder">Responder</span><span class="log-msg">New lead contacted — Amanda L., Mesquite TX — leak repair needed</span></div>
+    <div class="log-entry" style="border:none"><span class="log-time">1:09 PM</span><span class="log-agent tag-estimator">Estimator</span><span class="log-msg">Sent estimate to Thomas H., Richardson TX — commercial flat roof</span></div>
+  </div>
+
+  <div class="footer">Powered by <a href="https://digilabapp.com" style="color:#378ADD;text-decoration:none">DigiLab</a> · AI-powered growth systems</div>
+
+</div>
+<script>
+setInterval(() => {
+  document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+}, 60000);
+</script>
+</body>
+</html>
