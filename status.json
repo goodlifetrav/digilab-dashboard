@@ -7,9 +7,9 @@
   },
   "sdr": {
     "status": "idle",
-    "lastRun": "2026-04-17T14:31:41.619Z",
+    "lastRun": "2026-04-17T14:41:11.751Z",
     "smsThisRun": 1,
-    "smsTotal": 48
+    "smsTotal": 49
   },
   "replyHandler": {
     "status": "idle",
