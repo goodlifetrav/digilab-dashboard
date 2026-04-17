@@ -1,15 +1,15 @@
 {
   "scout": {
-  "status": "idle",
-  "lastRun": "2026-04-17T11:53:00.000Z",
-  "leadsThisRun": 1354,
-  "leadsTotal": 1581
-},
+    "status": "idle",
+    "lastRun": "2026-04-17T11:53:00.000Z",
+    "leadsThisRun": 1354,
+    "leadsTotal": 1581
+  },
   "sdr": {
     "status": "idle",
-    "lastRun": "2026-04-16T16:54:55.628Z",
+    "lastRun": "2026-04-17T12:19:44.098Z",
     "smsThisRun": 1,
-    "smsTotal": 15
+    "smsTotal": 16
   },
   "replyHandler": {
     "status": "idle",
